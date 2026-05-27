@@ -13,7 +13,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const orders = readCollection<any[]>("orders");
+    const orders = readCollection<any>("orders");
     const order = orders.find((o) => o.id === id && o.userId === user.id);
 
     if (!order) {

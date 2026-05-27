@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "请填写完整信息" }, { status: 400 });
     }
 
-    const orders = readCollection<any[]>("orders");
+    const orders = readCollection<any>("orders");
     const orderId = "ORD" + Date.now().toString().slice(-6);
 
     const now = new Date().toISOString();
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "请先登录" }, { status: 401 });
     }
 
-    const orders = readCollection<any[]>("orders");
+    const orders = readCollection<any>("orders");
     const userOrders = orders
       .filter((o) => o.userId === user.id)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

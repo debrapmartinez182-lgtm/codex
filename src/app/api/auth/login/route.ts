@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "邮箱和密码为必填项" }, { status: 400 });
     }
 
-    const users = readCollection<any[]>("users");
+    const users = readCollection<any>("users");
     const user = users.find((u) => u.email === email);
     if (!user) {
       return NextResponse.json({ error: "邮箱或密码错误" }, { status: 401 });
