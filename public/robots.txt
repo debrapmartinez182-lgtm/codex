@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://eztd.cn/sitemap.xml
+
+User-agent: Baiduspider
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Crawl-delay: 1

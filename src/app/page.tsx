@@ -76,8 +76,33 @@ const cases = [
 ];
 
 export default function HomePage() {
+  // 结构化数据，用于搜索引擎
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "中俄文件认证",
+    "description": "专业提供中俄两国文件公证、认证一站式服务，PDF扫描件即可办理",
+    "url": "https://eztd.cn",
+    "telephone": "400-888-9999",
+    "areaServed": "CN",
+    "knowsLanguage": ["zh-CN", "ru"],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "中俄文件认证服务",
+      "itemListElement": [
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "留学资料认证", "description": "学历证书、成绩单、护照等留学资料翻译及俄罗斯官方认证"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "法律文件认证", "description": "无犯罪记录、驾驶证、结婚证等文件认证"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "翻译服务", "description": "文件俄语翻译、中俄互译、翻译件公证"}}
+      ]
+    }
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-50 via-white to-red-50">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">

@@ -20,9 +20,29 @@ export const metadata: Metadata = {
     shortcut: "/logo.jpg",
     apple: "/logo.jpg",
   },
-  title: "中俄文件认证 - 一站式在线服务平台",
+  title: {
+    default: "中俄文件认证_俄罗斯公证双认证_在线办理一站式服务",
+    template: "%s | 中俄文件认证",
+  },
   description:
-    "专业提供中俄两国文件公证、认证一站式服务，覆盖留学、婚姻、法律等各类文件需求，全国服务，在线办理。",
+    "专业提供中俄两国文件公证认证一站式服务。护照认证、学历认证、结婚证认证、无犯罪记录认证、驾驶证认证、出生证明认证等，PDF扫描件即可办理，俄罗斯官方认证机构认证，全国服务在线办理。",
+  keywords:
+    "中俄文件认证,俄罗斯公证认证,俄语翻译,护照认证,学历认证,结婚证认证,无犯罪记录认证,驾驶证认证,出生证明认证,俄罗斯签证文件,留学公证双认证,EAC认证,俄罗斯大学留学",
+  robots: {
+    index: true,
+    follow: true,
+    "max-image-preview": "large",
+  },
+  openGraph: {
+    type: "website",
+    locale: "zh_CN",
+    url: "https://eztd.cn",
+    siteName: "中俄文件认证",
+    title: "中俄文件认证 - 俄罗斯公证双认证一站式服务",
+    description:
+      "专业提供中俄两国文件公证认证一站式服务，PDF扫描件即可办理，俄罗斯官方认证机构认证，全国服务在线办理。",
+    images: [{ url: "https://eztd.cn/logo.jpg", width: 512, height: 512 }],
+  },
 };
 
 export default function RootLayout({
