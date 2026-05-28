@@ -1,89 +1,47 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-
-const quickQuestions = [
-  "认证需要多长时间？",
-  "需要准备什么材料？",
-  "费用是多少？",
-  "如何查询办理进度？",
-];
-
-const autoReplies: Record<string, string> = {
-  "认证需要多长时间？":
-    "不同文件类型的认证时间不同：\n• 学历认证：约15个工作日\n• 出生证明：约12个工作日\n• 无犯罪记录：约12个工作日\n• 委托书/声明书：约8-10个工作日\n\n如需加急服务，请联系客服。",
-  "需要准备什么材料？":
-    "一般需要准备：\n1. 文件原件\n2. 申请人身份证复印件\n3. 申请人护照复印件\n\n具体文件类型所需材料可在「文件类型」页面查看。",
-  "费用是多少？":
-    "费用根据文件类型不同：\n• 学历认证：约2,800元\n• 出生证明：约2,000元\n• 结婚证：约2,500元\n• 无犯罪记录：约2,000元\n\n以上为参考价格，含公证费+双认证费。",
-  "如何查询办理进度？":
-    "登录后在「个人中心」页面可实时查看办理进度。每个阶段完成后会有短信/微信通知，您也可以随时联系客服获取最新状态。",
-};
-
-interface Message {
-  id: number;
-  sender: "user" | "bot";
-  text: string;
-}
+import { useState } from "react";
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 0,
-      sender: "bot",
-      text: "您好！欢迎使用中俄文件认证在线客服 👋\n\n我是您的认证顾问，有什么可以帮您的吗？",
-    },
-  ]);
-  const [input, setInput] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const wechatId = "YOUR_WECHAT_ID";
 
-  const handleSend = (text: string) => {
-    if (!text.trim()) return;
-    const userMsg: Message = { id: Date.now(), sender: "user", text };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-
-    // Auto reply
-    const reply = autoReplies[text] || "感谢您的咨询！如需更详细的帮助，请拨打客服热线 400-888-9999，我们的专业顾问将为您一对一解答。";
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        { id: Date.now() + 1, sender: "bot", text: reply },
-      ]);
-    }, 800);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(wechatId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <>
-      {/* Floating button */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-blue-700 transition-all hover:scale-110"
+          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg hover:bg-green-600 transition-all hover:scale-110"
         >
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.49.49 0 01.178-.554C23.028 18.48 24 16.82 24 14.98c0-3.21-2.931-5.952-7.062-6.122zm-2.18 2.949c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982z"/>
           </svg>
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white flex items-center justify-center">
+            <span className="text-white text-[8px] font-bold">1</span>
+          </span>
         </button>
       )}
 
-      {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col w-[360px] h-[520px] max-h-[calc(100vh-120px)] rounded-2xl bg-white shadow-2xl border border-gray-200 overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-primary text-white shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="font-medium text-sm">在线客服</span>
+        <div className="fixed bottom-6 right-6 z-50 w-[320px] rounded-2xl bg-white shadow-2xl border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-green-500 to-green-600">
+            <div className="flex items-center gap-2.5">
+              <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18z"/>
+              </svg>
+              <span className="font-semibold text-white text-base">微信客服</span>
             </div>
             <button
               onClick={() => setOpen(false)}
-              className="text-white/80 hover:text-white"
+              className="text-white/80 hover:text-white transition-colors"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -91,63 +49,38 @@ export default function ChatWidget() {
             </button>
           </div>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-line ${
-                    msg.sender === "user"
-                      ? "bg-primary text-white rounded-br-md"
-                      : "bg-white text-gray-700 rounded-bl-md shadow-sm border border-gray-100"
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+          <div className="p-6 text-center">
+            <p className="text-sm text-gray-600 mb-4">
+              扫码添加微信，随时随地为您解答
+            </p>
 
-          {/* Quick questions */}
-          {messages.length <= 1 && (
-            <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
-              <p className="text-xs text-gray-400 mb-2">常见问题：</p>
-              <div className="flex flex-wrap gap-2">
-                {quickQuestions.map((q) => (
-                  <button
-                    key={q}
-                    onClick={() => handleSend(q)}
-                    className="text-xs px-3 py-1.5 rounded-full bg-white text-gray-600 border border-gray-200 hover:border-primary hover:text-primary transition-colors"
-                  >
-                    {q}
-                  </button>
-                ))}
+            <div className="mx-auto w-48 h-48 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center mb-4 relative overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/wechat-qr.jpg"
+                alt="微信二维码"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="text-gray-400 text-sm text-center px-4 z-0">
+                <svg className="w-10 h-10 mx-auto mb-1 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v1m6 11h2m-6 0h-2.48a2.5 2.5 0 00-4.9 0H4m16 0a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2a2 2 0 012-2h16z" />
+                </svg>
+                <span className="text-xs">请放入微信二维码</span>
               </div>
             </div>
-          )}
 
-          {/* Input */}
-          <div className="flex items-center gap-2 px-4 py-3 bg-white border-t border-gray-200">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
-              placeholder="输入您的问题..."
-              className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-            />
-            <button
-              onClick={() => handleSend(input)}
-              className="flex-shrink-0 rounded-xl bg-primary p-2 text-white hover:bg-blue-700 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </button>
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-sm text-gray-500">微信号：</span>
+              <code className="px-3 py-1 bg-gray-100 rounded-lg text-sm font-mono text-gray-800">
+                {wechatId}
+              </code>
+              <button
+                onClick={handleCopy}
+                className="text-xs px-2.5 py-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+              >
+                {copied ? "已复制" : "复制"}
+              </button>
+            </div>
           </div>
         </div>
       )}
