@@ -85,6 +85,7 @@ export default function OrderClient() {
   };
 
   const [submitting, setSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"wechat" | "alipay">("wechat");
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -576,24 +577,67 @@ export default function OrderClient() {
                 {/* Payment Method */}
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 mb-3">支付方式</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <label className="flex items-center gap-3 p-4 border-2 border-primary rounded-xl cursor-pointer bg-primary-light/20">
+                  <div className="grid grid-cols-2 gap-3 mb-6">
+                    <label
+                      className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                        paymentMethod === "wechat"
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200 hover:border-green-300"
+                      }`}
+                    >
                       <input
                         type="radio"
                         name="payment"
-                        defaultChecked
+                        checked={paymentMethod === "wechat"}
+                        onChange={() => setPaymentMethod("wechat")}
                         className="text-primary"
                       />
-                      <span className="text-sm font-medium text-gray-900">
-                        微信支付
+                      <span className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                        <span className="text-lg">💚</span> 微信支付
                       </span>
                     </label>
-                    <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-primary/50 transition-colors">
-                      <input type="radio" name="payment" className="text-primary" />
-                      <span className="text-sm font-medium text-gray-900">
-                        支付宝
+                    <label
+                      className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                        paymentMethod === "alipay"
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-blue-300"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        checked={paymentMethod === "alipay"}
+                        onChange={() => setPaymentMethod("alipay")}
+                        className="text-primary"
+                      />
+                      <span className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                        <span className="text-lg">💙</span> 支付宝
                       </span>
                     </label>
+                  </div>
+
+                  {/* QR Code Display */}
+                  <div className="text-center bg-white border border-gray-200 rounded-2xl p-6">
+                    <p className="text-sm text-gray-500 mb-4">
+                      请使用{paymentMethod === "wechat" ? "微信" : "支付宝"}扫描下方二维码支付
+                    </p>
+                    <div className="inline-block border-4 border-gray-100 rounded-2xl p-2 bg-white">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={paymentMethod === "wechat" ? "/payment/wechat-qr.jpg" : "/payment/alipay-qr.jpg"}
+                        alt={paymentMethod === "wechat" ? "微信收款码" : "支付宝收款码"}
+                        className="w-52 h-52 object-contain mx-auto"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-400 mt-4">
+                      支付金额：<span className="text-lg font-bold text-primary">¥{selectedDoc?.estimatedFee.toLocaleString() ?? 0}</span>
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      支付完成后请点击下方"确认支付"按钮提交订单
+                    </p>
+                    <div className="mt-3 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs">
+                      <span>⚠️</span> 请确认付款完成后再提交
+                    </div>
                   </div>
                 </div>
 
