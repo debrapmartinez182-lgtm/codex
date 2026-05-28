@@ -1,28 +1,17 @@
-import fs from "fs";
-import path from "path";
+// In-memory database for Vercel serverless (no filesystem writes)
+// Data persists for the lifetime of the serverless instance
 
-const DATA_DIR = path.join(process.cwd(), "data");
-
-function ensureDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-}
+const store = new Map<string, any[]>();
 
 export function readCollection<T>(name: string): T[] {
-  ensureDir();
-  const filePath = path.join(DATA_DIR, `${name}.json`);
-  if (!fs.existsSync(filePath)) {
-    return [];
+  if (!store.has(name)) {
+    store.set(name, []);
   }
-  const raw = fs.readFileSync(filePath, "utf-8");
-  return JSON.parse(raw);
+  return store.get(name) as T[];
 }
 
 export function writeCollection<T>(name: string, data: T[]): void {
-  ensureDir();
-  const filePath = path.join(DATA_DIR, `${name}.json`);
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+  store.set(name, data);
 }
 
 export function generateId(): string {
