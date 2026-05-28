@@ -1,5 +1,7 @@
 "use client";
 
+import MosaicImage from "./MosaicImage";
+
 interface CaseData {
   document: string;
   image: string;
@@ -12,25 +14,15 @@ interface CaseData {
 export default function CaseImageCard({ c }: { c: CaseData }) {
   return (
     <div className="group bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-lg transition-all hover:-translate-y-1 flex-shrink-0 w-[300px] sm:w-[340px]">
-      {/* Image */}
+      {/* Image with mosaic */}
       <div className="relative h-64 overflow-hidden bg-gray-100">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <MosaicImage
           src={c.image}
           alt={c.document}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          onError={(e) => {
-            const el = e.currentTarget;
-            el.style.display = "none";
-            if (el.nextElementSibling) {
-              (el.nextElementSibling as HTMLElement).classList.remove("hidden");
-            }
-          }}
+          blockSize={14}
         />
-        <div className="hidden absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
-          <span className="text-4xl opacity-60">📄</span>
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
         <div className="absolute bottom-3 left-4">
           <h3 className="text-white text-base font-bold drop-shadow-md">{c.document}</h3>
           <p className="text-white/70 text-xs">{c.user}</p>

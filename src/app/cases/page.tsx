@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import MosaicImage from "@/components/MosaicImage";
 
 interface CaseItem {
   id: number;
@@ -85,22 +86,14 @@ export default function CasesPage() {
               className="break-inside-avoid bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-lg transition-all group"
             >
               <div className="relative overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <MosaicImage
                   src={c.image}
                   alt={c.document}
                   className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  blockSize={14}
                   style={{ minHeight: "180px" }}
-                  onError={(e) => {
-                    const el = e.currentTarget;
-                    el.style.display = "none";
-                    el.nextElementSibling?.classList.remove("hidden");
-                  }}
                 />
-                <div className="hidden absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center" style={{ minHeight: "180px" }}>
-                  <span className="text-4xl opacity-60">📄</span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
                 <div className="absolute bottom-3 left-4">
                   <span className="text-xs px-2 py-0.5 rounded-full bg-white/20 backdrop-blur text-white font-medium">
                     {c.category}
