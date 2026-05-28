@@ -1,10 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { allDocuments, type DocumentType } from "@/data/services";
 
 type OrderStep = 1 | 2 | 3;
+
+interface UploadedFile {
+  name: string;
+  size: number;
+  dataUrl: string;
+  materialLabel: string;
+}
 
 interface OrderForm {
   docId: string;
@@ -15,7 +22,6 @@ interface OrderForm {
   note: string;
   timeline: string;
   shipping: string;
-  files: { name: string; size: string }[];
 }
 
 export default function OrderClient() {
@@ -32,9 +38,12 @@ export default function OrderClient() {
     note: "",
     timeline: "standard",
     shipping: "standard-ship",
-    files: [],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"wechat" | "alipay">("wechat");
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   const selectedDoc: DocumentType | undefined = form.docId
     ? allDocuments.find((d) => d.id === form.docId)
@@ -51,14 +60,36 @@ export default function OrderClient() {
     }
   };
 
-  const handleFileUpload = () => {
-    // Simulate file upload
-    const mockFiles = [
-      { name: "身份证扫描件.pdf", size: "1.2 MB" },
-      { name: "护照复印件.pdf", size: "0.8 MB" },
-      { name: "认证文件原件.pdf", size: "2.1 MB" },
-    ];
-    setForm((prev) => ({ ...prev, files: mockFiles }));
+  const handleFileChange = (materialLabel: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFiles((prev) => {
+        const filtered = prev.filter((f) => f.materialLabel !== materialLabel);
+        return [
+          ...filtered,
+          {
+            name: file.name,
+            size: file.size,
+            dataUrl: reader.result as string,
+            materialLabel,
+          },
+        ];
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeFile = (materialLabel: string) => {
+    setFiles((prev) => prev.filter((f) => f.materialLabel !== materialLabel));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
   const validateStep1 = () => {
@@ -76,16 +107,17 @@ export default function OrderClient() {
     if (step === 1 && validateStep1()) {
       setStep(2);
     } else if (step === 2) {
-      if (form.files.length === 0) {
-        setErrors({ files: "请至少上传一份文件" });
+      if (!selectedDoc) return;
+      const missing = selectedDoc.materials.filter(
+        (m) => !files.some((f) => f.materialLabel === m)
+      );
+      if (missing.length > 0) {
+        setErrors({ files: `请上传以下材料：${missing.join("、")}` });
         return;
       }
       setStep(3);
     }
   };
-
-  const [submitting, setSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"wechat" | "alipay">("wechat");
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -102,6 +134,12 @@ export default function OrderClient() {
           address: form.address,
           note: form.note,
           fee: selectedDoc?.estimatedFee || 0,
+          files: files.map((f) => ({
+            name: f.name,
+            size: f.size,
+            materialLabel: f.materialLabel,
+            dataUrl: f.dataUrl.slice(0, 200) + "...",
+          })),
         }),
       });
 
@@ -123,7 +161,6 @@ export default function OrderClient() {
     if (step > 1) setStep((step - 1) as OrderStep);
   };
 
-  // Step indicator
   const steps = [
     { num: 1, label: "选择文件类型" },
     { num: 2, label: "上传PDF扫描件" },
@@ -227,14 +264,16 @@ export default function OrderClient() {
                   选择文件类型
                 </h2>
 
-                {/* Document Type Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     认证文件类型 <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={form.docId}
-                    onChange={(e) => updateField("docId", e.target.value)}
+                    onChange={(e) => {
+                      updateField("docId", e.target.value);
+                      setFiles([]); // Reset files when doc type changes
+                    }}
                     className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-1 ${
                       errors.docId
                         ? "border-red-300 focus:border-red-500 focus:ring-red-500"
@@ -257,11 +296,13 @@ export default function OrderClient() {
                         预计费用：¥{selectedDoc.estimatedFee.toLocaleString()} |
                         办理周期：{selectedDoc.estimatedDays}个工作日
                       </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        所需材料：{selectedDoc.materials.join("、")}
+                      </p>
                     </div>
                   )}
                 </div>
 
-                {/* Personal Info */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -359,100 +400,92 @@ export default function OrderClient() {
             )}
 
             {/* Step 2: Upload Files */}
-            {step === 2 && (
+            {step === 2 && selectedDoc && (
               <div className="space-y-6">
                 <h2 className="text-lg font-semibold text-gray-900">上传PDF扫描件</h2>
                 <p className="text-sm text-gray-500">
-                  上传以下材料的清晰扫描件或照片即可，<strong className="text-green-600">无需邮寄原件</strong>。支持 PDF、JPG、PNG 格式
+                  请根据 <strong className="text-primary">{selectedDoc.name}</strong> 的要求，上传以下材料的清晰扫描件或照片。
+                  <strong className="text-green-600"> 无需邮寄原件</strong>。支持 PDF、JPG、PNG 格式
                 </p>
 
-                {selectedDoc && (
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">
-                      所需材料清单：
-                    </h3>
-                    <ul className="space-y-1">
-                      {selectedDoc.materials.map((m, i) => (
-                        <li
-                          key={i}
-                          className="text-sm text-gray-600 flex items-center gap-2"
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                          {m}
-                        </li>
-                      ))}
-                    </ul>
+                {errors.files && (
+                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+                    {errors.files}
                   </div>
                 )}
 
-                {/* Upload Zone */}
-                {form.files.length === 0 ? (
-                  <div
-                    onClick={handleFileUpload}
-                    className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center hover:border-primary hover:bg-primary-light/50 transition-all cursor-pointer"
-                  >
-                    <svg
-                      className="mx-auto w-12 h-12 text-gray-400 mb-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                      />
-                    </svg>
-                    <p className="text-sm text-gray-600 font-medium">
-                      点击上传文件
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      支持 PDF、JPG、PNG，单文件不超过10MB
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {form.files.map((file, idx) => (
+                <div className="space-y-4">
+                  {selectedDoc.materials.map((material, idx) => {
+                    const uploaded = files.find((f) => f.materialLabel === material);
+                    return (
                       <div
-                        key={idx}
-                        className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-xl"
+                        key={material}
+                        className={`border-2 rounded-xl p-4 transition-all ${
+                          uploaded
+                            ? "border-green-300 bg-green-50"
+                            : "border-dashed border-gray-300 hover:border-primary hover:bg-primary-light/20"
+                        }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                            <p className="text-xs text-gray-500">{file.size}</p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-light text-primary text-xs font-bold">
+                              {idx + 1}
+                            </span>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{material}</p>
+                              {uploaded && (
+                                <p className="text-xs text-green-600">
+                                  ✓ {uploaded.name} ({formatFileSize(uploaded.size)})
+                                </p>
+                              )}
+                            </div>
                           </div>
+                          {uploaded ? (
+                            <button
+                              onClick={() => removeFile(material)}
+                              className="text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          ) : (
+                            <label className="cursor-pointer px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-blue-700 transition-colors">
+                              上传文件
+                              <input
+                                type="file"
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                className="hidden"
+                                onChange={(e) => handleFileChange(material, e)}
+                              />
+                            </label>
+                          )}
                         </div>
-                        <button
-                          onClick={() =>
-                            setForm((prev) => ({
-                              ...prev,
-                              files: prev.files.filter((_, i) => i !== idx),
-                            }))
-                          }
-                          className="text-gray-400 hover:text-red-500"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
                       </div>
-                    ))}
-                    <button
-                      onClick={handleFileUpload}
-                      className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-sm text-gray-500 hover:border-primary hover:text-primary transition-colors"
-                    >
-                      + 继续添加文件
-                    </button>
+                    );
+                  })}
+                </div>
+
+                <div className="bg-blue-50 rounded-xl p-4 flex items-start gap-3">
+                  <span className="text-lg">💡</span>
+                  <div className="text-sm text-blue-700">
+                    <p className="font-medium">上传提示</p>
+                    <p className="mt-1 text-blue-600">请确保文件清晰完整，四角可见，无反光遮挡。文件大小不超过 10MB。</p>
                   </div>
-                )}
-                {errors.files && (
-                  <p className="text-xs text-red-500">{errors.files}</p>
-                )}
+                </div>
+              </div>
+            )}
+
+            {/* Step 2 fallback - no doc selected */}
+            {step === 2 && !selectedDoc && (
+              <div className="text-center py-12">
+                <p className="text-gray-500 mb-4">请先返回上一步选择文件类型</p>
+                <button
+                  onClick={handleBack}
+                  className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white"
+                >
+                  返回选择
+                </button>
               </div>
             )}
 
@@ -556,7 +589,7 @@ export default function OrderClient() {
                     <div className="font-medium text-gray-900">{form.address}</div>
                     <div className="text-gray-500">上传文件</div>
                     <div className="font-medium text-gray-900">
-                      {form.files.length} 个文件
+                      {files.length} 个文件
                     </div>
                     <div className="text-gray-500">备注</div>
                     <div className="font-medium text-gray-900">
