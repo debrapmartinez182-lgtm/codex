@@ -62,7 +62,7 @@ export default function Header() {
             <img
               src="/logo.jpg"
               alt="宇恒认证"
-              className="h-10 w-10 rounded-full object-cover border-2 border-primary/20 shrink-0"
+              className="h-9 w-auto object-contain shrink-0"
             />
             <span className="text-lg font-bold text-primary">中俄文件认证</span>
           </Link>

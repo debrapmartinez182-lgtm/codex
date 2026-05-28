@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readCollection, writeCollection, generateId } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { sendNewOrderEmail } from "@/lib/email";
+
+export const dynamic = "force-dynamic";
 
 const DEFAULT_PROGRESS = [
   { step: "订单提交", status: "done", date: "" },
@@ -49,8 +52,14 @@ export async function POST(req: NextRequest) {
     orders.push(newOrder);
     writeCollection("orders", orders);
 
+    // Send email notification (fire and forget)
+    sendNewOrderEmail(newOrder).catch((err) => {
+      console.error("[Orders] Email notification failed:", err);
+    });
+
     return NextResponse.json({ order: newOrder }, { status: 201 });
-  } catch {
+  } catch (e: any) {
+    console.error("[Orders] Create order error:", e);
     return NextResponse.json({ error: "创建订单失败" }, { status: 500 });
   }
 }

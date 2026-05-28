@@ -9,7 +9,7 @@ export default function Footer() {
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.jpg" alt="宇恒认证" className="h-8 w-8 rounded-full object-cover" />
+            <img src="/logo.jpg" alt="宇恒认证" className="h-8 w-auto object-contain" />
               <span className="text-lg font-bold text-white">
                 中俄文件认证
               </span>
