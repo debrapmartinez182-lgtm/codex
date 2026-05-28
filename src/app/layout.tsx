@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  icons: {
+    icon: "/logo.jpg",
+    shortcut: "/logo.jpg",
+    apple: "/logo.jpg",
+  },
   title: "中俄文件认证 - 一站式在线服务平台",
   description:
     "专业提供中俄两国文件公证、认证一站式服务，覆盖留学、婚姻、法律等各类文件需求，全国服务，在线办理。",

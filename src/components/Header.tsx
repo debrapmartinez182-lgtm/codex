@@ -58,8 +58,13 @@ export default function Header() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <span className="text-2xl">🇨🇳</span>
-            <span className="text-xl font-bold text-primary">中俄文件认证</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.jpg"
+              alt="宇恒认证"
+              className="h-10 w-10 rounded-full object-cover border-2 border-primary/20 shrink-0"
+            />
+            <span className="text-lg font-bold text-primary">中俄文件认证</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
